@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Fournisseurs">
+<title>Fournisseurs · Giulia</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root {
+  --ink: #1C1712; --brown: #8B5E3C; --gold: #C4883A; --sand: #D4B896;
+  --cream: #FAF6EE; --green: #6B7C5A; --green-light: #EDF2E8;
+  --red: #B83232; --red-light: #FBEAEA; --white: #FFFFFF;
+  --border: #E4D9CC; --muted: #9A8878; --surface: #F5EFE6;
+  --chat-bg: #F0EBE2; --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--ink); display: flex; flex-direction: column; height: 100vh; }
+.header { background: var(--ink); padding: 12px 16px 10px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-top: max(12px, env(safe-area-inset-top)); }
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-logo { width: 34px; height: 34px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.header-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1rem; font-weight: 900; }
+.header-sub { font-size: 0.65rem; color: var(--sand); }
+.header-tabs { display: flex; gap: 4px; }
+.htab { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; color: var(--sand); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.htab.active { background: var(--gold); color: white; }
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--cream); border-radius: 16px 16px 0 0; margin-top: 2px; }
+.page { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.page.active { display: flex; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--chat-bg); -webkit-overflow-scrolling: touch; }
+.msg { display: flex; gap: 8px; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.msg.user { flex-direction: row-reverse; }
+.msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; }
+.msg.bot .msg-avatar { background: var(--gold); }
+.msg.user .msg-avatar { background: var(--ink); color: var(--gold); }
+.msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 0.85rem; line-height: 1.5; }
+.msg.bot .msg-bubble { background: var(--white); color: var(--ink); border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.msg.user .msg-bubble { background: var(--ink); color: var(--cream); border-bottom-right-radius: 4px; }
+.msg-bubble strong { color: var(--gold); }
+.typing-indicator .msg-bubble { padding: 12px 16px; display: flex; gap: 4px; align-items: center; }
+.dot { width: 7px; height: 7px; background: var(--border); border-radius: 50%; animation: bounce .9s infinite; }
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+.quick-actions { padding: 8px 16px 4px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; background: var(--chat-bg); }
+.qa-btn { padding: 6px 12px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; font-size: 0.75rem; color: var(--ink); white-space: nowrap; cursor: pointer; font-family: 'DM Sans', sans-serif; flex-shrink: 0; }
+.chat-input-area { background: var(--white); border-top: 1px solid var(--border); padding: 10px 12px; padding-bottom: max(10px, var(--safe-bottom)); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.chat-input-wrap { flex: 1; display: flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 24px; padding: 8px 14px; border: 1px solid var(--border); }
+#chatInput { flex: 1; border: none; background: none; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--ink); outline: none; resize: none; max-height: 100px; }
+.attach-btn { width: 28px; height: 28px; border-radius: 50%; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--muted); }
+.send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); border: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.send-btn:disabled { background: var(--border); }
+.page-scroll { overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; }
+.stat-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--brown); margin-bottom: 3px; }
+.stat-val { font-family: 'Playfair Display', serif; font-size: 1.5rem; line-height: 1; }
+.stat-val.green { color: var(--green); }
+.stat-val.gold { color: var(--gold); }
+.stat-sub { font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
+.section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--brown); margin: 14px 0 8px; }
+.product-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.product-card.advantage-tg { border-left: 3px solid var(--green); }
+.product-card.advantage-gr { border-left: 3px solid var(--gold); }
+.product-info { flex: 1; min-width: 0; }
+.product-name { font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-cat { font-size: 0.7rem; color: var(--muted); }
+.product-prices { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; }
+.price-item { font-size: 0.78rem; }
+.price-label { font-size: 0.65rem; color: var(--muted); }
+.price-val { font-weight: 600; }
+.price-val.best { color: var(--green); }
+.winner-badge { padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.wb-tg { background: var(--green-light); color: var(--green); }
+.wb-gr { background: #fff3e0; color: #a05000; }
+.eco-chip { font-size: 0.72rem; color: var(--green); font-weight: 600; white-space: nowrap; }
+.upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px 20px; text-align: center; cursor: pointer; background: var(--white); margin-bottom: 12px; }
+.upload-icon { font-size: 2rem; margin-bottom: 8px; }
+.upload-title { font-weight: 600; font-size: 0.88rem; }
+.upload-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+.ai-status { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 10px; }
+.ai-loading { background: #fff8e8; color: var(--brown); border: 1px solid #f0d9b0; }
+.ai-success { background: var(--green-light); color: #3a5c2a; border: 1px solid #c0d8b0; }
+.ai-error { background: var(--red-light); color: var(--red); border: 1px solid #f0c0c0; }
+.spinner { width: 15px; height: 15px; border: 2px solid rgba(0,0,0,.1); border-top-color: var(--gold); border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.invoice-row { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.inv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.dot-gr { background: var(--gold); }
+.dot-tg { background: var(--green); }
+.inv-info { flex: 1; min-width: 0; }
+.inv-name { font-weight: 500; font-size: 0.83rem; }
+.inv-meta { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.inv-amount { font-weight: 600; font-size: 0.83rem; white-space: nowrap; }
+.settings-section { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.settings-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; }
+.form-label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--brown); margin-bottom: 5px; }
+.form-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; background: var(--surface); color: var(--ink); outline: none; margin-bottom: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 9px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; border: none; cursor: pointer; }
+.btn-gold { background: var(--gold); color: white; }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--border); }
+.btn-red { background: var(--red-light); color: var(--red); border: 1px solid #f0c0c0; }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.manual-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.manual-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.ext-item { background: var(--surface); border-radius: 8px; padding: 9px 10px; margin-bottom: 6px; display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; font-size: 0.8rem; }
+.ext-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ext-price { font-weight: 700; color: var(--gold); white-space: nowrap; }
+.fourn-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; margin: 3px; }
+.pill-gr { background: #fff3e0; color: #8B5E3C; }
+.pill-tg { background: var(--green-light); color: #4a6338; }
+.empty-state { text-align: center; padding: 30px 20px; color: var(--muted); }
+#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--cream); padding: 9px 20px; border-radius: 20px; font-size: 0.82rem; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">🥐</div>
+    <div>
+      <div class="header-title">Fournisseurs</div>
+      <div class="header-sub">Les Petits Pains de Giulia</div>
+    </div>
+  </div>
+  <div class="header-tabs">
+    <button class="htab active" onclick="showPage('chat',this)">Agent</button>
+    <button class="htab" onclick="showPage('comparatif',this)">Prix</button>
+    <button class="htab" onclick="showPage('factures',this)">Factures</button>
+    <button class="htab" onclick="showPage('reglages',this)">⚙️</button>
+  </div>
+</div>
+<div class="main">
+  <div class="page active" id="page-chat">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="quickSend('Meilleurs prix du moment ?')">💰 Meilleurs prix</button>
+      <button class="qa-btn" onclick="quickSend('Quels prix ont augmenté ?')">📈 Hausses</button>
+      <button class="qa-btn" onclick="quickSend('Rapport mensuel')">📊 Rapport</button>
+      <button class="qa-btn" onclick="quickSend('Économies possibles ?')">💡 Économies</button>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea id="chatInput" placeholder="Pose une question…" rows="1" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <button class="attach-btn" onclick="document.getElementById('chatPDF').click()">📎</button>
+        <input type="file" id="chatPDF" accept=".pdf" style="display:none" onchange="handleChatPDF(this)">
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+  <div class="page" id="page-comparatif">
+    <div class="page-scroll" id="comparatifScroll"></div>
+  </div>
+  <div class="page" id="page-factures">
+    <div class="page-scroll">
+      <div class="upload-zone" onclick="document.getElementById('facturePDF').click()">
+        <div class="upload-icon">📑</div>
+        <div class="upload-title">Toucher pour importer une facture PDF</div>
+        <div class="upload-sub">Extraction automatique par IA</div>
+        <input type="file" id="facturePDF" accept=".pdf" style="display:none" onchange="handleFacturePDF(this)">
+      </div>
+      <div id="factureStatus" style="display:none"></div>
+      <div id="extractedPreview" style="display:none"></div>
+      <div class="settings-section">
+        <div class="settings-title">✏️ Saisie manuelle</div>
+        <div class="manual-row" style="margin-bottom:8px">
+          <div><label class="form-label">Fournisseur</label><select class="form-input" id="man-fourn" style="margin-bottom:0"><option value="G&R">G&R</option><option value="TG">TG</option></select></div>
+          <div><label class="form-label">Date</label><input class="form-input" type="date" id="man-date" style="margin-bottom:0"></div>
+        </div>
+        <div class="manual-row-3" style="margin-bottom:8px">
+          <div><label class="form-label">Produit</label><input class="form-input" id="man-nom" placeholder="ex: Mozza 1kg" list="produit-dl" style="margin-bottom:0"><datalist id="produit-dl"></datalist></div>
+          <div><label class="form-label">Prix HT</label><input class="form-input" type="number" id="man-prix" step="0.001" placeholder="0.000" style="margin-bottom:0"></div>
+          <div><label class="form-label">Unité</label><input class="form-input" id="man-unite" placeholder="€/p" style="margin-bottom:0"></div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="manualAdd()">+ Ajouter</button>
+      </div>
+      <div class="section-title">Historique</div>
+      <div id="facturesList"></div>
+    </div>
+  </div>
+  <div class="page" id="page-reglages">
+    <div class="page-scroll">
+      <div class="settings-section">
+        <div class="settings-title">🔑 Clé API Anthropic</div>
+        <label class="form-label">Clé API (sk-ant-…)</label>
+        <input class="form-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-…">
+        <button class="btn btn-gold btn-sm" onclick="saveApiKey()">Enregistrer</button>
+        <span id="apiSaved" style="display:none;margin-left:8px;font-size:.78rem;color:var(--green)">✓</span>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">💾 Sauvegarde</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="exportData()">↓ Exporter</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">↑ Importer</button>
+          <button class="btn btn-red btn-sm" onclick="resetData()">Effacer tout</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const SK='giulia_agent_v1';
+function loadDB(){try{return JSON.parse(localStorage.getItem(SK))||initDB();}catch{return initDB();}}
+function initDB(){return{fournisseurs:['G&R','TG'],produits:[{id:1,nom:'Mozzarella pain 1kg',cat:'Fromage',unite:'€/kg',qty:4},{id:2,nom:'Emmental tranche 500g',cat:'Fromage',unite:'€/pqt',qty:2},{id:3,nom:'Ciabatta 140g',cat:'Surgelé boulanger',unite:'€/pièce',qty:100},{id:4,nom:'Pain choco 85g',cat:'Surgelé boulanger',unite:'€/pièce',qty:200},{id:5,nom:'Jambon cuit',cat:'Charcuterie',unite:'€/kg',qty:2},{id:6,nom:'Chausson pomme 120g',cat:'Surgelé boulanger',unite:'€/pièce',qty:60},{id:7,nom:'Briochette tradition 90g',cat:'Surgelé boulanger',unite:'€/pièce',qty:90},{id:8,nom:'Levure fraîche',cat:'Épicerie',unite:'€/kg',qty:2.5}],prices:{1:[{date:'2026-05-19',fournisseur:'G&R',prix:7.85,source:'Facture 26023837'}],2:[{date:'2026-05-19',fournisseur:'G&R',prix:9.00,source:'Facture 26023837'}],3:[{date:'2026-05-19',fournisseur:'G&R',prix:0.457,source:'Facture 26023837'},{date:'2026-05-07',fournisseur:'TG',prix:0.294,source:'Facture TG'}],4:[{date:'2026-05-19',fournisseur:'G&R',prix:0.464,source:'Facture 26023837'},{date:'2026-05-07',fournisseur:'TG',prix:0.389,source:'Facture TG'}],5:[{date:'2026-05-07',fournisseur:'TG',prix:6.40,source:'Facture TG'}],8:[{date:'2026-05-19',fournisseur:'G&R',prix:2.126,source:'Facture 26023837'}]},factures:[{id:'f1',fournisseur:'G&R',numero:'26023837',date:'2026-05-19',totalHT:1005.14,nbProduits:8},{id:'f2',fournisseur:'TG',numero:'TG-07/05',date:'2026-05-07',totalHT:320.00,nbProduits:5}],nextId:9};}
+let db=loadDB();
+function saveDB(){localStorage.setItem(SK,JSON.stringify(db));}
+function fmt(v,d=3){return v!=null?parseFloat(v).toFixed(d).replace('.',',')+'€':'—';}
+function fmtDate(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
+function today(){return new Date().toISOString().slice(0,10);}
+function getLatestByFourn(pid){const byF={};(db.prices[pid]||[]).forEach(p=>{if(!byF[p.fournisseur]||p.date>byF[p.fournisseur].date)byF[p.fournisseur]=p;});return byF;}
+function getBestPrice(pid){const byF=getLatestByFourn(pid);const entries=Object.values(byF);if(!entries.length)return null;return entries.reduce((a,b)=>a.prix<b.prix?a:b);}
+function buildContext(){const lines=[];lines.push('=== PRIX FOURNISSEURS ===');lines.push(`Date: ${today()}`);db.produits.forEach(p=>{const byF=getLatestByFourn(p.id);if(!Object.keys(byF).length)return;const ps=Object.entries(byF).map(([f,d])=>`${f}=${d.prix}${p.unite}`).join(', ');const grP=byF['G&R']?.prix;const tgP=byF['TG']?.prix;let cmp='';if(grP&&tgP){const diff=((grP-tgP)/grP*100).toFixed(1);cmp=tgP<grP?` → TG moins cher ${diff}%`:` → G&R moins cher ${Math.abs(diff)}%`;if(p.qty)cmp+=` (éco: ${(Math.abs(grP-tgP)*p.qty).toFixed(0)}€/mois)`;}lines.push(`${p.nom}: ${ps}${cmp}`);});lines.push('=== FACTURES ===');db.factures.forEach(f=>lines.push(`${f.fournisseur} N°${f.numero} ${fmtDate(f.date)}: ${f.totalHT}€HT`));return lines.join('\n');}
+function showPage(name,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(btn)btn.classList.add('active');if(name==='comparatif')renderComparatif();if(name==='factures')renderFactures();}
+let chatHistory=[];
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function quickSend(text){document.getElementById('chatInput').value=text;sendChat();}
+function addMsg(role,html){const c=document.getElementById('chatMessages');const d=document.createElement('div');d.className=`msg ${role}`;d.innerHTML=`<div class="msg-avatar">${role==='bot'?'🥐':'👤'}</div><div class="msg-bubble">${html}</div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;return d;}
+function showTyping(){const c=document.getElementById('chatMessages');const d=document.createElement('div');d.className='msg bot typing-indicator';d.id='typing';d.innerHTML=`<div class="msg-avatar">🥐</div><div class="msg-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+async function sendChat(){const input=document.getElementById('chatInput');const text=input.value.trim();if(!text)return;const apiKey=localStorage.getItem('giulia_api_key');if(!apiKey){addMsg('bot','⚠️ <strong>Clé API manquante.</strong> Va dans ⚙️ Réglages.');return;}input.value='';input.style.height='auto';document.getElementById('sendBtn').disabled=true;addMsg('user',text);chatHistory.push({role:'user',content:text});showTyping();const sys=`Tu es l'assistant IA de la boulangerie "Les Petits Pains de Giulia" à Autrans. Tu aides Loïc à comparer les prix fournisseurs G&R (Girard & Roux) et TG (Transgourmet).\n\nDonnées actuelles:\n${buildContext()}\n\nRéponds en français, concis, avec du HTML simple (strong, br). Signe les rapports: "— Loïc, Giulia & Sandro 🛵"`;try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:chatHistory.slice(-10)})});hideTyping();const data=await r.json();const reply=data.content.map(b=>b.text||'').join('');chatHistory.push({role:'assistant',content:reply});addMsg('bot',reply);}catch(err){hideTyping();addMsg('bot',`❌ Erreur: ${err.message}`);}document.getElementById('sendBtn').disabled=false;}
+async function handleChatPDF(input){if(!input.files[0])return;const file=input.files[0];const apiKey=localStorage.getItem('giulia_api_key');if(!apiKey){addMsg('bot','⚠️ Clé API manquante.');return;}addMsg('user',`📎 ${file.name}`);showTyping();document.getElementById('sendBtn').disabled=true;const base64=await fileToBase64(file);try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,system:`Tu analyses des factures pour la boulangerie "Les Petits Pains de Giulia".\nDonnées actuelles:\n${buildContext()}\nAnalyse la facture, compare les prix, signale hausses ⚠️ et baisses ✅.\nÀ la fin inclus: <!--JSON:{"fournisseur":"","numero":"","date":"YYYY-MM-DD","totalHT":0,"produits":[{"nom":"","prix":0,"unite":"","cat":""}]}-->`,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:'Analyse cette facture.'}]}]})});hideTyping();const data=await r.json();let reply=data.content.map(b=>b.text||'').join('');const m=reply.match(/<!--JSON:([\s\S]*?)-->/);if(m){try{const ex=JSON.parse(m[1].trim());reply=reply.replace(/<!--JSON:[\s\S]*?-->/,'');reply+=`<br><br><button onclick='importFromChat(${JSON.stringify(ex).replace(/'/g,"\\'")})'style='background:var(--gold);color:white;border:none;padding:8px 16px;border-radius:8px;font-family:DM Sans,sans-serif;font-size:.82rem;cursor:pointer'>✓ Importer ces prix</button>`;}catch(e){}}addMsg('bot',reply);}catch(err){hideTyping();addMsg('bot',`❌ ${err.message}`);}document.getElementById('sendBtn').disabled=false;input.value='';}
+function importFromChat(data){const fid='f_'+Date.now();let n=0;(data.produits||[]).forEach(p=>{let pr=db.produits.find(x=>x.nom.toLowerCase()===p.nom.toLowerCase());if(!pr){pr={id:db.nextId++,nom:p.nom,cat:p.cat||'Autre',unite:p.unite||'€/u',qty:null};db.produits.push(pr);}if(!db.prices[pr.id])db.prices[pr.id]=[];db.prices[pr.id].push({date:data.date||today(),fournisseur:data.fournisseur,prix:p.prix,source:`Facture ${data.numero||''}`,factureId:fid});n++;});db.factures.push({id:fid,fournisseur:data.fournisseur,numero:data.numero||'PDF',date:data.date||today(),totalHT:data.totalHT||0,nbProduits:n});saveDB();addMsg('bot',`✅ <strong>${n} prix importés</strong> !`);showToast(`${n} prix importés ✓`);}
+</script>
+<script>
+async function handleFacturePDF(input){if(!input.files[0])return;const file=input.files[0];const apiKey=localStorage.getItem('giulia_api_key');if(!apiKey){showFactureStatus('error','⚠️ Clé API manquante.');return;}showFactureStatus('loading',`Analyse de ${file.name}…`);const base64=await fileToBase64(file);try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:'Extrais tous les produits. Réponds UNIQUEMENT en JSON: {"fournisseur":"","numero":"","date":"YYYY-MM-DD","totalHT":0,"produits":[{"nom":"","prix":0.000,"unite":"€/pièce ou €/kg","cat":"Fromage|Surgelé boulanger|Charcuterie|Boisson|Épicerie|Autre"}]}'}]}]})});const data=await r.json();const text=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();const parsed=JSON.parse(text);showFactureStatus('success',`✓ ${parsed.produits.length} produits — ${parsed.fournisseur} N°${parsed.numero}`);showExtractedPreview(parsed);}catch(err){showFactureStatus('error',`❌ ${err.message}`);}input.value='';}
+function showFactureStatus(type,msg){const el=document.getElementById('factureStatus');el.style.display='flex';el.className='ai-status ai-'+type;el.innerHTML=(type==='loading'?'<div class="spinner"></div>':'')+`<span>${msg}</span>`;}
+function showExtractedPreview(parsed){const el=document.getElementById('extractedPreview');el.style.display='block';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:.83rem">${parsed.produits.length} produits à importer</strong><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cancelExtracted()">Annuler</button><button class="btn btn-gold btn-sm" onclick='confirmImport(${JSON.stringify(parsed).replace(/'/g,"\\'")})''>✓ Importer</button></div></div>${parsed.produits.slice(0,8).map(p=>`<div class="ext-item"><div><div class="ext-name">${p.nom}</div><div style="font-size:.7rem;color:var(--muted)">${parsed.fournisseur} · ${p.cat}</div></div><div class="ext-price">${p.prix.toFixed(3).replace('.',',')} €</div><div style="font-size:.7rem;color:var(--muted)">${p.unite}</div></div>`).join('')}${parsed.produits.length>8?`<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:6px">+ ${parsed.produits.length-8} autres</div>`:''}`.replace(/'/g,"'");}
+function cancelExtracted(){document.getElementById('extractedPreview').style.display='none';document.getElementById('factureStatus').style.display='none';}
+function confirmImport(data){importFromChat(data);cancelExtracted();renderFactures();}
+function manualAdd(){const fourn=document.getElementById('man-fourn').value;const date=document.getElementById('man-date').value||today();const nom=document.getElementById('man-nom').value.trim();const prix=parseFloat(document.getElementById('man-prix').value);const unite=document.getElementById('man-unite').value.trim();if(!nom||isNaN(prix)){showToast('Nom et prix obligatoires');return;}let p=db.produits.find(x=>x.nom.toLowerCase()===nom.toLowerCase());if(!p){p={id:db.nextId++,nom,cat:'Autre',unite:unite||'€/u',qty:null};db.produits.push(p);}if(!db.prices[p.id])db.prices[p.id]=[];db.prices[p.id].push({date,fournisseur:fourn,prix,source:'Saisie manuelle'});db.factures.push({id:'m'+Date.now(),fournisseur:fourn,numero:'Manuel',date,totalHT:prix,nbProduits:1});saveDB();document.getElementById('man-nom').value='';document.getElementById('man-prix').value='';document.getElementById('man-unite').value='';renderFactures();showToast('Prix ajouté ✓');}
+function renderFactures(){document.getElementById('man-date').value=today();document.getElementById('produit-dl').innerHTML=db.produits.map(p=>`<option value="${p.nom}">`).join('');const list=document.getElementById('facturesList');if(!db.factures.length){list.innerHTML='<div class="empty-state">Aucune facture</div>';return;}list.innerHTML=[...db.factures].sort((a,b)=>b.date.localeCompare(a.date)).map(f=>`<div class="invoice-row"><div class="inv-dot dot-${f.fournisseur==='G&R'?'gr':'tg'}"></div><div class="inv-info"><div class="inv-name">${f.fournisseur} · N°${f.numero}</div><div class="inv-meta">${fmtDate(f.date)} · ${f.nbProduits} produits</div></div><div class="inv-amount">${fmt(f.totalHT,2)}</div><button class="btn btn-red btn-sm" onclick="deleteFacture('${f.id}')">🗑</button></div>`).join('');}
+function deleteFacture(id){if(!confirm('Supprimer ?'))return;Object.keys(db.prices).forEach(pid=>{db.prices[pid]=(db.prices[pid]||[]).filter(p=>p.factureId!==id);});db.factures=db.factures.filter(f=>f.id!==id);saveDB();renderFactures();}
+function renderComparatif(){let totalEco=0,countTG=0,countGR=0;const cards=db.produits.map(p=>{const byF=getLatestByFourn(p.id);if(!Object.keys(byF).length)return null;const grP=byF['G&R']?.prix;const tgP=byF['TG']?.prix;let winner=null,eco=null,cls='';if(grP&&tgP){winner=tgP<grP?'TG':'G&R';eco=p.qty?Math.abs(grP-tgP)*p.qty:null;cls=winner==='TG'?'advantage-tg':'advantage-gr';if(winner==='TG'){countTG++;if(eco)totalEco+=eco;}else countGR++;}else if(Object.keys(byF).length===1){winner=Object.keys(byF)[0];}const ph=Object.entries(byF).map(([f,d])=>`<div class="price-item"><div class="price-label">${f}</div><div class="price-val ${winner===f?'best':''}">${d.prix.toFixed(3).replace('.',',')} €</div></div>`).join('');const wb=winner?`<span class="winner-badge ${winner==='TG'?'wb-tg':'wb-gr'}">▼ ${winner}</span>`:'';const ec=eco?`<span class="eco-chip">+${Math.round(eco)}€/mois</span>`:'';return`<div class="product-card ${cls}"><div class="product-info"><div class="product-name">${p.nom}</div><div class="product-cat">${p.cat} · ${p.unite}</div><div class="product-prices">${ph}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">${wb}${ec}</div></div>`;}).filter(Boolean);document.getElementById('comparatifScroll').innerHTML=`<div style="padding:14px"><div class="stats-grid"><div class="stat-card"><div class="stat-label">Produits</div><div class="stat-val gold">${db.produits.length}</div></div><div class="stat-card"><div class="stat-label">Avantage TG</div><div class="stat-val green">${countTG}</div></div><div class="stat-card"><div class="stat-label">Avantage G&R</div><div class="stat-val" style="color:var(--gold)">${countGR}</div></div><div class="stat-card"><div class="stat-label">Éco. mensuelle</div><div class="stat-val green">${totalEco>0?Math.round(totalEco)+'€':'—'}</div></div></div><div class="section-title">Comparatif</div>${cards.length?cards.join(''):'<div class="empty-state">Importe des factures pour comparer</div>'}</div>`;}
+function saveApiKey(){const v=document.getElementById('apiKeyInput').value.trim();if(!v||v.startsWith('••'))return;localStorage.setItem('giulia_api_key',v);document.getElementById('apiSaved').style.display='inline';setTimeout(()=>document.getElementById('apiSaved').style.display='none',2000);}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download=`giulia-${today()}.json`;a.click();}
+function importData(input){const r=new FileReader();r.onload=e=>{try{db=JSON.parse(e.target.result);saveDB();renderComparatif();showToast('Importé ✓');}catch{alert('JSON invalide');}};r.readAsText(input.files[0]);}
+function resetData(){if(!confirm('Effacer tout ?'))return;db=initDB();saveDB();renderComparatif();showToast('Réinitialisé');}
+function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2200);}
+addMsg('bot','Bonjour Loïc ! 👋<br><br>Je suis ton agent fournisseurs.<br><strong>📎</strong> Envoie une facture PDF<br><strong>💰</strong> Compare les prix G&R vs TG<br><strong>📊</strong> Génère des rapports<br><br>Que veux-tu savoir ?');
+if(!localStorage.getItem('giulia_api_key')){addMsg('bot','⚠️ <strong>Clé API manquante</strong> — va dans ⚙️ Réglages.');}
+renderComparatif();
+</script>
+</body>
+</html>
